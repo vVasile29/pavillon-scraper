@@ -1,3 +1,4 @@
+mod domain;
 mod input;
 mod pdf_parser;
 mod slack;

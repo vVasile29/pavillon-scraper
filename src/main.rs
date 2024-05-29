@@ -1,5 +1,8 @@
+use crate::pdf_parser::parse_pdf;
+
 mod input;
+mod pdf_parser;
 
 fn main() {
-    println!("Hello, world!");
+    parse_pdf().expect("TODO: panic message");
 }

@@ -1,13 +1,22 @@
 use scraper::{Html, Selector};
-use std::path::PathBuf;
+use std::io::Write;
+use tempfile::NamedTempFile;
 
-const PAVILLON_SITE: &'static str = "https://www.pavillon-wuerzburg.de/pavillon/mittag";
+const PAVILLON_SITE: &str = "https://www.pavillon-wuerzburg.de/pavillon/mittag";
 
-pub fn download_pdf() -> PathBuf {
-    unimplemented!();
+pub fn download_pdf() -> NamedTempFile {
+    let pdf_link = get_pdf_link();
+    let mut tmp_file = tempfile::Builder::new()
+        .prefix("pavillon")
+        .tempfile()
+        .unwrap();
+    let response = reqwest::blocking::get(pdf_link).unwrap();
+
+    tmp_file.write_all(&response.bytes().unwrap()).unwrap();
+    tmp_file
 }
 
-pub fn get_pdf_link() -> String {
+fn get_pdf_link() -> String {
     let string = reqwest::blocking::get(PAVILLON_SITE)
         .unwrap()
         .text()

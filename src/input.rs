@@ -1,27 +1,38 @@
+use futures::StreamExt;
 use scraper::{Html, Selector};
-use std::io::Write;
 use tempfile::NamedTempFile;
 
 const PAVILLON_SITE: &str = "https://www.pavillon-wuerzburg.de/pavillon/mittag";
 
-pub fn download_pdf() -> NamedTempFile {
-    let pdf_link = get_pdf_link();
-    let mut tmp_file = tempfile::Builder::new()
+pub async fn download_pdf() -> NamedTempFile {
+    let pdf_link = get_pdf_link().await;
+    let tmp_file = tempfile::Builder::new()
         .prefix("pavillon")
         .tempfile()
         .unwrap();
-    let response = reqwest::blocking::get(pdf_link).unwrap();
 
-    tmp_file.write_all(&response.bytes().unwrap()).unwrap();
+    println!("Downloading {} to {}", pdf_link, tmp_file.path().display());
+
+    let response = reqwest::get(pdf_link).await.unwrap();
+
+    let mut reader = response.bytes_stream();
+    let mut writer = tokio::fs::File::create(&tmp_file).await.unwrap();
+    while let Some(item) = reader.next().await {
+        tokio::io::copy(&mut item.unwrap().as_ref(), &mut writer)
+            .await
+            .unwrap();
+    }
     tmp_file
 }
 
-fn get_pdf_link() -> String {
-    let string = reqwest::blocking::get(PAVILLON_SITE)
+async fn get_pdf_link() -> String {
+    let html_content = reqwest::get(PAVILLON_SITE)
+        .await
         .unwrap()
         .text()
+        .await
         .unwrap();
-    let html = Html::parse_document(&string);
+    let html = Html::parse_document(&html_content);
 
     let all_pdf_a_tags = Selector::parse(
         r#"a[href^="https://www.pavillon-wuerzburg.de/wp/wp-content/uploads/"][href$=".pdf"]"#,

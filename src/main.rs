@@ -1,12 +1,9 @@
-use crate::pdf_parser::parse_pdf;
-
 mod input;
-mod slack;
 mod pdf_parser;
+mod slack;
 
 #[tokio::main]
 async fn main() {
-    println!("Hello, world!");
-    parse_pdf().expect("TODO: panic message");
-    slack::main().await;
+    let pdf = input::download_pdf().await;
+    pdf_parser::parse_pdf(&pdf).expect("TODO: panic message");
 }

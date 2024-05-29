@@ -1,16 +1,10 @@
-use std::path::PathBuf;
+use pdf::{content::Op, file::FileOptions};
 use std::error::Error;
-use pdf::{
-    file::FileOptions,
-    content::Op,
-};
+use std::path::Path;
 
-pub fn parse_pdf() -> Result<(), Box<dyn Error>> {
-    // Specify the path to the input PDF file
-    let input_path = PathBuf::from("/home/vvasile/Development/pavillon-scraper/assets/sample - sample.pdf");
-
+pub fn parse_pdf<P: AsRef<Path>>(path: P) -> Result<(), Box<dyn Error>> {
     // Open the PDF file
-    let file = FileOptions::cached().open(&input_path)?;
+    let file = FileOptions::cached().open(path)?;
 
     // Iterate through all pages and extract text content
     for i in 0..file.num_pages() {
@@ -22,9 +16,9 @@ pub fn parse_pdf() -> Result<(), Box<dyn Error>> {
                 match op {
                     Op::TextDraw { ref text } => {
                         println!("TextDraw: {}", text.to_string_lossy());
-                    },
+                    }
                     _ => {
-                        println!("{:?}", op);  // Print all operations
+                        println!("{:?}", op); // Print all operations
                     }
                 }
             }

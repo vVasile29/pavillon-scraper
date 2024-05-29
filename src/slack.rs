@@ -2,9 +2,11 @@ use dotenv::dotenv;
 use slack_morphism::prelude::*;
 use std::env;
 
+const SLACK_CHANNEL: &str = "#pavillon-test";
+
 pub async fn main() {
     dotenv().ok();
-    send_message("Hello World", "#pavillion-test")
+    send_message("Hello World", SLACK_CHANNEL)
         .await
         .expect("TODO: panic message");
 }

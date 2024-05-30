@@ -1,4 +1,4 @@
-use crate::domain::{PavillonDish, PavillonDishes};
+use crate::domain::PavillonDish;
 use pdf_extract::extract_text;
 use regex::Regex;
 use std::error::Error;
@@ -35,7 +35,7 @@ pub fn parse_pdf<P: AsRef<Path>>(path: P) -> Result<Vec<PavillonDish>, Box<dyn E
 
     // Iterate over all matches
     for cap in re.captures_iter(&relevant_text) {
-        let mut name = cap[1].trim().replace("\n", " ");
+        let mut name = cap[1].trim().replace('\n', " ");
         name = Regex::new(r"\s{2,}")
             .unwrap()
             .replace_all(&name, " ")
@@ -43,7 +43,7 @@ pub fn parse_pdf<P: AsRef<Path>>(path: P) -> Result<Vec<PavillonDish>, Box<dyn E
         name = name.replace(" .", "").replace("..", "").trim().to_string();
         name = name.replace("- ", "-"); // Handle the specific case of hyphen followed by space
         let price_str = &cap[2];
-        let price = price_str.replace(",", ".").parse::<f32>()?;
+        let price = price_str.replace(',', ".").parse::<f32>()?;
 
         // Create a PavillonDish and add it to the vector
         let dish = PavillonDish { name, price };

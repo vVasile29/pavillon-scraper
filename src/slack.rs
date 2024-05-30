@@ -1,7 +1,5 @@
 use crate::domain::PavillonDishes;
 use dotenv::dotenv;
-use num_format::{Locale, ToFormattedString};
-use reqwest::Url;
 use slack_morphism::prelude::*;
 use std::env;
 

@@ -50,30 +50,23 @@ impl From<PavillonDishes> for PavillonMessage {
 
 impl SlackMessageTemplate for PavillonMessage {
     fn render_template(&self) -> SlackMessageContent {
-        SlackMessageContent::new()
-            .with_text("Hello World".to_string())
-            .with_blocks(slack_blocks![
-                some_into(SlackSectionBlock::new().with_text(md!("Hey {}", "User"))),
-                some_into(SlackDividerBlock::new()),
-                some_into(SlackHeaderBlock::new(pt!("Simple header"))),
-                some_into(SlackDividerBlock::new()),
-                some_into(SlackContextBlock::new(slack_blocks![some(md!(
-                    "This is an example of block message"
-                ))])),
-                some_into(SlackDividerBlock::new()),
-                some_into(
-                    SlackImageBlock::new(
-                        Url::parse("https://www.gstatic.com/webp/gallery3/2_webp_ll.png").unwrap(),
-                        "Test Image".into(),
-                    )
-                    .with_title("Test Image".into())
-                ),
-                some_into(SlackActionsBlock::new(slack_blocks![some_into(
-                    SlackBlockButtonElement::new(
-                        "simple-message-button".into(),
-                        pt!("Simple button text")
-                    )
-                )]))
-            ])
+        let mut slack_blocks: Vec<SlackBlock> = self
+            .0
+            .dishes
+            .iter()
+            .map(|dish| {
+                let name = dish.name.as_str();
+                SlackSectionBlock::new().with_text(md!("{}", name)).into()
+            })
+            .collect();
+
+        slack_blocks.push(
+            SlackActionsBlock::new(slack_blocks![some_into(
+                SlackBlockButtonElement::new("simple-message-button".into(), pt!("Karte öffnen"))
+                    .with_url(self.0.url.clone())
+            )])
+            .into(),
+        );
+        SlackMessageContent::new().with_blocks(slack_blocks)
     }
 }

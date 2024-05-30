@@ -1,5 +1,8 @@
+use reqwest::Url;
+
 #[derive(Debug)]
 pub struct PavillonDishes {
+    pub url: Url,
     pub dishes: Vec<PavillonDish>,
 }
 
@@ -10,10 +13,6 @@ pub struct PavillonDish {
 }
 
 impl PavillonDishes {
-    pub fn new() -> Self {
-        PavillonDishes { dishes: vec![] }
-    }
-
     pub fn available_side_dishes(&self) -> Vec<SideDish> {
         vec![]
     }

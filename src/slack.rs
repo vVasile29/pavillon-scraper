@@ -55,8 +55,9 @@ impl SlackMessageTemplate for PavillonMessage {
             .dishes
             .iter()
             .map(|dish| {
-                let name = dish.name.as_str();
-                SlackSectionBlock::new().with_text(md!("{}", name)).into()
+                SlackSectionBlock::new()
+                    .with_text(md!("*{:.2}€* {}", dish.price, dish.name))
+                    .into()
             })
             .collect();
 

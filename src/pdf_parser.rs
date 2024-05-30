@@ -1,10 +1,10 @@
+use crate::domain::{PavillonDish, PavillonDishes};
 use pdf_extract::extract_text;
 use regex::Regex;
 use std::error::Error;
 use std::path::Path;
-use crate::domain::{PavillonDish, PavillonDishes};
 
-pub fn parse_pdf<P: AsRef<Path>>(path: P) -> Result<(), Box<dyn Error>> {
+pub fn parse_pdf<P: AsRef<Path>>(path: P) -> Result<Vec<PavillonDish>, Box<dyn Error>> {
     // Extract text from the PDF
     let text = extract_text(path)?;
 
@@ -15,9 +15,10 @@ pub fn parse_pdf<P: AsRef<Path>>(path: P) -> Result<(), Box<dyn Error>> {
     let mut dishes = Vec::new();
 
     // Split the text into lines and remove the header and footer
-    let lines: Vec<&str> = text.lines()
-        .skip_while(|line| !line.trim().is_empty())  // Skip until the first empty line
-        .skip(1)  // Skip the empty line itself
+    let lines: Vec<&str> = text
+        .lines()
+        .skip_while(|line| !line.trim().is_empty()) // Skip until the first empty line
+        .skip(1) // Skip the empty line itself
         .take_while(|line| !line.contains("Änderungen vorbehalten!"))
         .collect();
 
@@ -30,7 +31,10 @@ pub fn parse_pdf<P: AsRef<Path>>(path: P) -> Result<(), Box<dyn Error>> {
     // Iterate over all matches
     for cap in re.captures_iter(&relevant_text) {
         let mut name = cap[1].trim().replace("\n", " ");
-        name = Regex::new(r"\s{2,}").unwrap().replace_all(&name, " ").to_string(); // Replace multiple spaces with a single space
+        name = Regex::new(r"\s{2,}")
+            .unwrap()
+            .replace_all(&name, " ")
+            .to_string(); // Replace multiple spaces with a single space
         name = name.replace(" .", "").replace("..", "").trim().to_string();
         name = name.replace("- ", "-"); // Handle the specific case of hyphen followed by space
         let price_str = &cap[2];
@@ -45,5 +49,5 @@ pub fn parse_pdf<P: AsRef<Path>>(path: P) -> Result<(), Box<dyn Error>> {
         println!("{:?}", dish);
     }
 
-    Ok(())
+    Ok(dishes)
 }

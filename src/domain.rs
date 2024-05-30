@@ -1,6 +1,6 @@
 #[derive(Debug)]
 pub struct PavillonDishes {
-    pub(crate) dishes: Vec<PavillonDish>,
+    pub dishes: Vec<PavillonDish>,
 }
 
 #[derive(Debug)]
@@ -10,6 +10,10 @@ pub struct PavillonDish {
 }
 
 impl PavillonDishes {
+    pub fn new() -> Self {
+        PavillonDishes { dishes: vec![] }
+    }
+
     pub fn available_side_dishes(&self) -> Vec<SideDish> {
         vec![]
     }

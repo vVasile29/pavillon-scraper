@@ -12,13 +12,19 @@ pub struct PavillonDish {
     pub price: f32,
 }
 
+impl PavillonDish {
+    pub fn available_side_dishes(&self) -> Vec<SideDish> {
+        vec![]
+    }
+}
+
 impl PavillonDishes {
     pub fn available_side_dishes(&self) -> Vec<SideDish> {
         vec![]
     }
 }
 
-enum SideDish {
+pub enum SideDish {
     Fries,
     CurlyFries,
     PotatoWedges,

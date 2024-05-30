@@ -3,6 +3,10 @@ use pdf_extract::extract_text;
 use regex::Regex;
 use std::error::Error;
 use std::path::Path;
+<<<<<<< Updated upstream
+=======
+use crate::domain::{PavillonDish};
+>>>>>>> Stashed changes
 
 pub fn parse_pdf<P: AsRef<Path>>(path: P) -> Result<Vec<PavillonDish>, Box<dyn Error>> {
     // Extract text from the PDF
@@ -28,6 +32,10 @@ pub fn parse_pdf<P: AsRef<Path>>(path: P) -> Result<Vec<PavillonDish>, Box<dyn E
     // Define a regex to match menu items and prices
     let re = Regex::new(r"(?m)^\s*([^€\n]+(?:\n[^€\n]+)*)\s+€\s*([0-9]+,[0-9]+)\s*$").unwrap();
 
+    // Add logic to skip header text based on expected pattern (e.g., date format)
+    let date_pattern = Regex::new(r"TAGESKARTE\s+(MO|DI|MI|DO|FR|SA|SO)\s+\d{2}\.\d{2}\.\d{4}").unwrap();
+    let relevant_text = date_pattern.replace(&relevant_text, "").to_string();
+
     // Iterate over all matches
     for cap in re.captures_iter(&relevant_text) {
         let mut name = cap[1].trim().replace("\n", " ");
@@ -41,10 +49,11 @@ pub fn parse_pdf<P: AsRef<Path>>(path: P) -> Result<Vec<PavillonDish>, Box<dyn E
         let price = price_str.replace(",", ".").parse::<f32>()?;
 
         // Create a PavillonDish and add it to the vector
-        dishes.push(PavillonDish { name, price });
+        let dish = PavillonDish { name, price };
+        dishes.push(dish);
     }
 
-    // Print the dishes
+    // Print dishes for debugging
     for dish in &dishes {
         println!("{:?}", dish);
     }

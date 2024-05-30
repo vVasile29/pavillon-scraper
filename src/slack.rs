@@ -1,41 +1,57 @@
 use crate::domain::PavillonDishes;
-use dotenv::dotenv;
+use hyper_rustls::HttpsConnector;
+use hyper_util::client::legacy::connect::HttpConnector;
+use slack_morphism::errors::SlackClientError;
 use slack_morphism::prelude::*;
 use std::env;
+use std::error::Error;
 
 const SLACK_CHANNEL: &str = "#pavillon-test";
 
-pub async fn post_pavillon_dishes_to_slack(dishes: PavillonDishes) {
-    dotenv().ok();
-    send_message(
-        SLACK_CHANNEL,
-        PavillonMessage::from(dishes).render_template(),
-    )
-    .await
-    .expect("TODO: panic message");
+type Connector = SlackClientHyperConnector<HttpsConnector<HttpConnector>>;
+
+pub struct SlackApi {
+    client: SlackClient<Connector>,
+    token: SlackApiToken,
 }
 
-async fn send_message<S: Into<SlackChannelId>>(
-    channel: S,
-    message: SlackMessageContent,
-) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    let bot_token = env::var("TOKEN").expect("TOKEN env var must be set");
-    let client = SlackClient::new(SlackClientHyperConnector::new()?);
+impl SlackApi {
+    pub fn new() -> Result<Self, Box<dyn Error>> {
+        dotenv::dotenv()?;
+        let client = SlackClient::new(SlackClientHyperConnector::new()?);
 
-    // Create our Slack API token
-    let token: SlackApiToken = SlackApiToken::new(bot_token.into());
+        let bot_token = env::var("TOKEN").expect("TOKEN env var must be set");
+        let token = SlackApiToken::new(bot_token.into());
 
-    // Create a Slack session with this token
-    // A session is just a lightweight wrapper around your token
-    // not to specify it all the time for series of calls.
-    let session = client.open_session(&token);
+        Ok(SlackApi { client, token })
+    }
 
-    // Send a text message
-    let post_chat_req = SlackApiChatPostMessageRequest::new(channel.into(), message);
+    fn open_session(&self) -> SlackClientSession<Connector> {
+        self.client.open_session(&self.token)
+    }
 
-    let _post_chat_resp = session.chat_post_message(&post_chat_req).await?;
+    async fn send_message<S: Into<SlackChannelId>>(
+        &self,
+        channel: S,
+        message: SlackMessageContent,
+    ) -> Result<(), SlackClientError> {
+        let post_chat_req = SlackApiChatPostMessageRequest::new(channel.into(), message);
+        self.open_session()
+            .chat_post_message(&post_chat_req)
+            .await
+            .map(|_| ())
+    }
 
-    Ok(())
+    pub async fn post_pavillon_dishes_to_slack(
+        &self,
+        dishes: PavillonDishes,
+    ) -> Result<(), SlackClientError> {
+        self.send_message(
+            SLACK_CHANNEL,
+            PavillonMessage::from(dishes).render_template(),
+        )
+        .await
+    }
 }
 
 #[derive(Debug)]

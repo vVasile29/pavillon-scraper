@@ -4,7 +4,7 @@ use tempfile::NamedTempFile;
 
 const PAVILLON_SITE: &str = "https://www.pavillon-wuerzburg.de/pavillon/mittag";
 
-pub async fn download_pdf() -> NamedTempFile {
+pub async fn download_pdf() -> (String, NamedTempFile) {
     let pdf_link = get_pdf_link().await;
     let tmp_file = tempfile::Builder::new()
         .prefix("pavillon")
@@ -13,7 +13,7 @@ pub async fn download_pdf() -> NamedTempFile {
 
     println!("Downloading {} to {}", pdf_link, tmp_file.path().display());
 
-    let response = reqwest::get(pdf_link).await.unwrap();
+    let response = reqwest::get(&pdf_link).await.unwrap();
 
     let mut reader = response.bytes_stream();
     let mut writer = tokio::fs::File::create(&tmp_file).await.unwrap();
@@ -22,7 +22,7 @@ pub async fn download_pdf() -> NamedTempFile {
             .await
             .unwrap();
     }
-    tmp_file
+    (pdf_link, tmp_file)
 }
 
 pub async fn get_pdf_link() -> String {

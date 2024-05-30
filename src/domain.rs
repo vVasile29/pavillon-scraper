@@ -1,12 +1,12 @@
 #[derive(Debug)]
-struct PavillonDishes {
-    dishes: Vec<PavillonDish>,
+pub struct PavillonDishes {
+    pub(crate) dishes: Vec<PavillonDish>,
 }
 
 #[derive(Debug)]
-struct PavillonDish {
-    name: String,
-    price: f32,
+pub struct PavillonDish {
+    pub name: String,
+    pub price: f32,
 }
 
 impl PavillonDishes {

@@ -25,7 +25,7 @@ pub async fn download_pdf() -> (String, NamedTempFile) {
     (pdf_link, tmp_file)
 }
 
-pub async fn get_pdf_link() -> String {
+async fn get_pdf_link() -> String {
     let html_content = reqwest::get(PAVILLON_SITE)
         .await
         .unwrap()

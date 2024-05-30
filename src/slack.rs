@@ -1,5 +1,6 @@
 use crate::domain::PavillonDishes;
 use dotenv::dotenv;
+use num_format::{Locale, ToFormattedString};
 use reqwest::Url;
 use slack_morphism::prelude::*;
 use std::env;
@@ -32,7 +33,7 @@ async fn send_message<S: Into<SlackChannelId>>(
     let session = client.open_session(&token);
 
     // Send a text message
-    let post_chat_req = SlackApiChatPostMessageRequest::new(channel.into(), message.into());
+    let post_chat_req = SlackApiChatPostMessageRequest::new(channel.into(), message);
 
     let _post_chat_resp = session.chat_post_message(&post_chat_req).await?;
 
@@ -56,7 +57,11 @@ impl SlackMessageTemplate for PavillonMessage {
             .iter()
             .map(|dish| {
                 SlackSectionBlock::new()
-                    .with_text(md!("*{:.2}€* {}", dish.price, dish.name))
+                    .with_text(md!(
+                        "*{}€* {}",
+                        format!("{:.2}", dish.price).replace('.', ","),
+                        dish.name
+                    ))
                     .into()
             })
             .collect();

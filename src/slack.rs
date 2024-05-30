@@ -6,16 +6,16 @@ const SLACK_CHANNEL: &str = "#pavillon-test";
 
 pub async fn main() {
     dotenv().ok();
-    send_message("Hello World", SLACK_CHANNEL)
+    send_message(SLACK_CHANNEL, "Hello World")
         .await
         .expect("TODO: panic message");
 }
 
-async fn send_message(
-    message: &str,
-    channel: &str,
+async fn send_message<S: Into<SlackChannelId>, M: Into<String>>(
+    channel: S,
+    message: M,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    let bot_token = env::var("TOKEN").expect("TOKEN env var musst be set");
+    let bot_token = env::var("TOKEN").expect("TOKEN env var must be set");
     let client = SlackClient::new(SlackClientHyperConnector::new()?);
 
     // Create our Slack API token

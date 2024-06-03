@@ -1,8 +1,10 @@
 use reqwest::Url;
+use std::path::PathBuf;
 
 #[derive(Debug)]
 pub struct PavillonDishes {
     pub url: Url,
+    pub path: PathBuf,
     pub dishes: Vec<PavillonDish>,
 }
 

@@ -57,8 +57,7 @@ impl SlackApi {
                 "test.pdf".to_string(),
                 len as usize,
             ))
-            .await
-            .unwrap();
+            .await?;
 
         let file_upload_resp = session
             .files_upload_via_url(&SlackApiFilesUploadViaUrlRequest {
@@ -66,8 +65,7 @@ impl SlackApi {
                 content: fs::read(path).unwrap(),
                 content_type: "application/pdf".into(),
             })
-            .await
-            .unwrap();
+            .await?;
 
         let complete_file_upload_req =
             SlackApiFilesCompleteUploadExternalRequest::new(vec![SlackApiFilesComplete::new(
@@ -76,8 +74,7 @@ impl SlackApi {
             .with_channel_id(SLACK_CHANNEL_ID.into());
         let complete_file_upload_resp = session
             .files_complete_upload_external(&complete_file_upload_req)
-            .await
-            .unwrap();
+            .await?;
         println!("{:?}", complete_file_upload_resp);
         Ok(())
     }
@@ -105,20 +102,40 @@ impl From<PavillonDishes> for PavillonMessage {
 
 impl SlackMessageTemplate for PavillonMessage {
     fn render_template(&self) -> SlackMessageContent {
-        let mut slack_blocks: Vec<SlackBlock> = self
-            .0
-            .dishes
-            .iter()
-            .map(|dish| {
+        let Self(pavillon_dishes) = self;
+        let mut slack_blocks: Vec<SlackBlock> = vec![];
+
+        let side_dishes = pavillon_dishes.available_side_dishes();
+        if !side_dishes.is_empty() {
+            slack_blocks.push(
                 SlackSectionBlock::new()
                     .with_text(md!(
-                        "*{}€* {}",
-                        format!("{:.2}", dish.price).replace('.', ","),
-                        dish.name
+                        "Heute gibt es {}!",
+                        side_dishes
+                            .iter()
+                            .map(|dish| format!(
+                                "{}{}",
+                                dish.colloquial_name,
+                                dish.emoji
+                                    .map(|emoji| format!(" {}", emoji))
+                                    .unwrap_or_default()
+                            ))
+                            .collect::<Vec<_>>()
+                            .join(" und ")
                     ))
-                    .into()
-            })
-            .collect();
+                    .into(),
+            )
+        }
+
+        slack_blocks.extend(pavillon_dishes.dishes.iter().map(|dish| {
+            SlackSectionBlock::new()
+                .with_text(md!(
+                    "*{}€* {}",
+                    format!("{:.2}", dish.price).replace('.', ","),
+                    dish.name
+                ))
+                .into()
+        }));
 
         slack_blocks.push(
             SlackActionsBlock::new(slack_blocks![some_into(

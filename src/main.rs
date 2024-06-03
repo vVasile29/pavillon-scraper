@@ -14,6 +14,7 @@ async fn main() {
     slack_api
         .post_pavillon_dishes_to_slack(PavillonDishes {
             url: url.parse().unwrap(),
+            path: pdf.path().into(),
             dishes,
         })
         .await

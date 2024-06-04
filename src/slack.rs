@@ -36,36 +36,15 @@ impl SlackApi {
         &self,
         channel: C,
         message: SlackMessageContent,
-    ) -> Result<(), SlackClientError> {
+    ) -> Result<SlackApiChatPostMessageResponse, SlackClientError> {
         let post_chat_req = SlackApiChatPostMessageRequest::new(channel.into(), message);
-        self.open_session()
-            .chat_post_message(&post_chat_req)
-            .await
-            .map(|_| ())
-    }
-
-    pub async fn test_send_message<P: AsRef<Path>>(&self, path: P) -> Result<(), Box<dyn Error>> {
-        let resp = self.upload_file(path).await.unwrap();
-        let SlackFile {
-            url_private,
-            url_private_download,
-            permalink,
-            permalink_public,
-            ..
-        } = &resp.files[0];
-        let string = format!(
-            "Linktest permalink_public {}",
-            permalink_public.as_ref().unwrap()
-        );
-        self.send_message(SLACK_CHANNEL, SlackMessageContent::new().with_text(string))
-            .await
-            .unwrap();
-        Ok(())
+        self.open_session().chat_post_message(&post_chat_req).await
     }
 
     pub async fn upload_file<P: AsRef<Path>>(
         &self,
         path: P,
+        ts: SlackTs,
     ) -> Result<SlackApiFilesCompleteUploadExternalResponse, SlackClientError> {
         let session = self.open_session();
 
@@ -88,7 +67,9 @@ impl SlackApi {
         let complete_file_upload_req =
             SlackApiFilesCompleteUploadExternalRequest::new(vec![SlackApiFilesComplete::new(
                 upload_url_resp.file_id,
-            )]);
+            )])
+            .with_channel_id(SLACK_CHANNEL_ID.into())
+            .with_thread_ts(ts);
         let complete_file_upload_resp = session
             .files_complete_upload_external(&complete_file_upload_req)
             .await?;
@@ -99,21 +80,20 @@ impl SlackApi {
         &self,
         dishes: PavillonDishes,
     ) -> Result<(), SlackClientError> {
-        let files = self.upload_file(&dishes.path).await.unwrap().files;
-        self.send_message(
-            SLACK_CHANNEL,
-            PavillonMessage(dishes, files.into_iter().nth(0).unwrap()).render_template(),
-        )
-        .await
+        let path = dishes.path.clone();
+        let sent_message = self
+            .send_message(SLACK_CHANNEL, PavillonMessage(dishes).render_template())
+            .await?;
+        self.upload_file(path, sent_message.ts).await.map(|_| ())
     }
 }
 
 #[derive(Debug)]
-struct PavillonMessage(PavillonDishes, SlackFile);
+struct PavillonMessage(PavillonDishes);
 
 impl SlackMessageTemplate for PavillonMessage {
     fn render_template(&self) -> SlackMessageContent {
-        let Self(pavillon_dishes, slack_file) = self;
+        let Self(pavillon_dishes) = self;
         let mut slack_blocks: Vec<SlackBlock> = vec![];
 
         let side_dishes = pavillon_dishes.available_side_dishes();
@@ -154,11 +134,6 @@ impl SlackMessageTemplate for PavillonMessage {
                     .with_url(self.0.url.clone())
             )])
             .into(),
-        );
-        slack_blocks.push(
-            SlackSectionBlock::new()
-                .with_text(pt!("{}", slack_file.permalink.as_ref().unwrap()))
-                .into(),
         );
         SlackMessageContent::new().with_blocks(slack_blocks)
     }

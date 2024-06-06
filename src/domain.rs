@@ -1,4 +1,4 @@
-use chrono::{Local, NaiveDate};
+use chrono::NaiveDate;
 use reqwest::Url;
 use std::path::PathBuf;
 
@@ -72,7 +72,7 @@ impl SideDish {
 
 const SIDE_DISHES: [SideDish; 4] = [
     SideDish::new("Pommes Frites", &["pommes"], Some('🍟')),
-    SideDish::new("Spiralpommes", &[], None),
+    SideDish::new("Twisterkartoffeln", &["twisterkartoffeln"], Some('🌪')),
     SideDish::new("Kartoffelecken", &[], None),
     SideDish::new("Knoblauchkartoffeln", &["knoblauchkartoffeln"], Some('🧄')),
 ];

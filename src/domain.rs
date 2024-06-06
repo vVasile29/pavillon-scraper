@@ -41,19 +41,19 @@ impl PavillonDishes {
 pub struct SideDish {
     pub colloquial_name: &'static str,
     keywords: &'static [&'static str],
-    pub emoji: Option<char>,
+    pub emojis: Option<&'static str>,
 }
 
 impl SideDish {
     const fn new(
         colloquial_name: &'static str,
         keywords: &'static [&'static str],
-        emoji: Option<char>,
+        emojis: Option<&'static str>,
     ) -> Self {
         SideDish {
             colloquial_name,
             keywords,
-            emoji,
+            emojis,
         }
     }
     fn matching_side_dishes<S: AsRef<str>>(string: S) -> Vec<SideDish> {
@@ -71,8 +71,8 @@ impl SideDish {
 }
 
 const SIDE_DISHES: [SideDish; 4] = [
-    SideDish::new("Pommes Frites", &["pommes"], Some('🍟')),
-    SideDish::new("Twisterkartoffeln", &["twisterkartoffeln"], Some('🌪')),
+    SideDish::new("Pommes Frites", &["pommes"], Some("🍟")),
+    SideDish::new("Twisterkartoffeln", &["twisterkartoffeln"], Some("🌪")),
     SideDish::new("Kartoffelecken", &[], None),
-    SideDish::new("Knoblauchkartoffeln", &["knoblauchkartoffeln"], Some('🧄')),
+    SideDish::new("Knoblauchkartoffeln", &["knoblauchkartoffeln"], Some("🧄")),
 ];

@@ -112,8 +112,8 @@ impl SlackMessageTemplate for PavillonMessage {
                             .map(|dish| format!(
                                 "{}{}",
                                 dish.colloquial_name,
-                                dish.emoji
-                                    .map(|emoji| format!(" {}", emoji))
+                                dish.emojis
+                                    .map(|emojis| format!(" {}", emojis))
                                     .unwrap_or_default()
                             ))
                             .collect::<Vec<_>>()

@@ -11,12 +11,14 @@ async fn main() {
     let dishes: Vec<PavillonDish> = pdf_parser::parse_pdf(&pdf).expect("TODO: panic message");
     let slack_api = slack::SlackApi::new().unwrap();
 
+    let dishes = PavillonDishes {
+        url: url.parse().unwrap(),
+        path: pdf.path().into(),
+        dishes,
+    };
+
     slack_api
-        .post_pavillon_dishes_to_slack(PavillonDishes {
-            url: url.parse().unwrap(),
-            path: pdf.path().into(),
-            dishes,
-        })
+        .post_pavillon_dishes_to_slack(dishes)
         .await
         .unwrap();
 }

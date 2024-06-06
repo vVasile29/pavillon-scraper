@@ -1,3 +1,4 @@
+use chrono::{Local, NaiveDate};
 use reqwest::Url;
 use std::path::PathBuf;
 
@@ -26,6 +27,12 @@ impl PavillonDishes {
             .iter()
             .flat_map(|dish| dish.available_side_dishes())
             .collect()
+    }
+
+    pub fn get_date(&self) -> Option<NaiveDate> {
+        let file_name = self.url.path_segments().unwrap().last()?;
+        let numbers_only: String = file_name.chars().filter(char::is_ascii_digit).collect();
+        NaiveDate::parse_from_str(&numbers_only, "%d%m%Y").ok()
     }
 }
 

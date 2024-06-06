@@ -41,9 +41,10 @@ impl SlackApi {
         self.open_session().chat_post_message(&post_chat_req).await
     }
 
-    pub async fn upload_file<P: AsRef<Path>>(
+    pub async fn upload_file<P: AsRef<Path>, S: Into<String>>(
         &self,
         path: P,
+        filename: S,
         ts: SlackTs,
     ) -> Result<SlackApiFilesCompleteUploadExternalResponse, SlackClientError> {
         let session = self.open_session();
@@ -51,7 +52,7 @@ impl SlackApi {
         let len = path.as_ref().metadata().unwrap().len();
         let upload_url_resp = session
             .get_upload_url_external(&SlackApiFilesGetUploadUrlExternalRequest::new(
-                "test.pdf".to_string(),
+                filename.into(),
                 len as usize,
             ))
             .await?;
@@ -81,10 +82,14 @@ impl SlackApi {
         dishes: PavillonDishes,
     ) -> Result<(), SlackClientError> {
         let path = dishes.path.clone();
+        let date = dishes.get_date().unwrap_or_default();
         let sent_message = self
             .send_message(SLACK_CHANNEL, PavillonMessage(dishes).render_template())
             .await?;
-        self.upload_file(path, sent_message.ts).await.map(|_| ())
+        let file_name = format!("Tageskarte-{}.pdf", date);
+        self.upload_file(path, file_name, sent_message.ts)
+            .await
+            .map(|_| ())
     }
 }
 

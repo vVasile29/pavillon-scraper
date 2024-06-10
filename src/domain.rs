@@ -73,6 +73,6 @@ impl SideDish {
 const SIDE_DISHES: [SideDish; 4] = [
     SideDish::new("Pommes Frites", &["pommes"], Some("🍟")),
     SideDish::new("Twisterkartoffeln", &["twisterkartoffeln"], Some("🌪")),
-    SideDish::new("Kartoffelecken", &[], None),
+    SideDish::new("Kartoffelwedges", &["wedges"], Some("🥔📐")),
     SideDish::new("Knoblauchkartoffeln", &["knoblauchkartoffeln"], Some("🧄")),
 ];
